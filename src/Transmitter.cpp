@@ -60,6 +60,8 @@ void Transmitter::setProperties()
   _si4713.setProperty(SI4713_PROP_TX_ACOMP_ENABLE, 0x02);
   // Set pre-emphasis for europe
   _si4713.setProperty(SI4713_PROP_TX_PREEMPHASIS, 0x01);
+  // Set line level input according to the datasheet
+  _si4713.setProperty(0x210, 0x31E7);
 }
 
 uint16_t Transmitter::findBestFrequency()
