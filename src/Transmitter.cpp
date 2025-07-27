@@ -27,9 +27,15 @@ void Transmitter::autoTune()
   setFrequency(bestFrequency);
 }
 
-void Transmitter::setFrequency(uint16_t value)
+uint16_t Transmitter::getFrequency()
 {
-  _si4713.tuneFM(value);
+  return _frequency;
+}
+
+void Transmitter::setFrequency(uint16_t frequency)
+{
+  _si4713.tuneFM(frequency);
+  _frequency = frequency;
 }
 
 // Although a similar function is allready implemented in the Adafruit library,
