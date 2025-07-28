@@ -11,9 +11,6 @@ bool Transmitter::begin()
 {
   reset();
 
-  // Needed to optimize cold start
-  delay(500);
-
   if (!_si4713.begin())
     return false;
 
@@ -50,14 +47,13 @@ void Transmitter::setFrequency(uint16_t frequency)
 void Transmitter::reset()
 {
   pinMode(_resetPin, OUTPUT);
-  digitalWrite(_resetPin, HIGH);
-  delay(100);
 
   digitalWrite(_resetPin, LOW);
-  delay(100);
+  delayMicroseconds(100);
 
   digitalWrite(_resetPin, HIGH);
-  delay(100);
+  // Needed to optimize cold start
+  delay(500);
 }
 
 void Transmitter::setProperties()
