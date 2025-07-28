@@ -9,7 +9,7 @@ class Transmitter
 public:
   Transmitter(uint8_t resetPin, uint8_t power);
   bool begin();
-  uint16_t getFrequency();
+  const uint16_t getFrequency();
   void setFrequency(uint16_t frequency);
   void autoTune();
 

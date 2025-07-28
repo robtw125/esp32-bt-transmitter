@@ -11,8 +11,14 @@ bool Transmitter::begin()
 {
   reset();
 
+  // Needed to optimize cold start
+  delay(500);
+
   if (!_si4713.begin())
     return false;
+
+  // Needed to guarantee a cold start
+  delay(500);
 
   setProperties();
 
@@ -27,7 +33,7 @@ void Transmitter::autoTune()
   setFrequency(bestFrequency);
 }
 
-uint16_t Transmitter::getFrequency()
+const uint16_t Transmitter::getFrequency()
 {
   return _frequency;
 }
