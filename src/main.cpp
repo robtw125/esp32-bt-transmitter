@@ -8,9 +8,19 @@
 
 #define I2S_NUM I2S_NUM_0
 
-Transmitter transmitter(SI4713_RESET_PIN, SI4713_POWER);
-Button button(14, 500, 200, 25);
+#define BUTTON_PIN 14
+#define BUTTON_MIN_HOLD_DURATION 1000
+#define BUTTON_MAX_TIME_BETWEEN_PRESSES 250
+#define BUTTON_DEBOUNCE_DELAY 25
+
+Transmitter transmitter(SI4713_RESET_PIN, SI4713_POWER, 10530);
 BluetoothA2DPSink a2dpSink;
+
+Button button(
+    BUTTON_PIN,
+    BUTTON_MIN_HOLD_DURATION,
+    BUTTON_MAX_TIME_BETWEEN_PRESSES,
+    BUTTON_DEBOUNCE_DELAY);
 
 void setup_i2s()
 {
@@ -49,25 +59,27 @@ void onStreamRead(const uint8_t *data, uint32_t length)
 
 void onButtonPress(uint8_t pressCount)
 {
-  Serial.printf("Pressed %u times!\n", pressCount);
+  Serial.printf("Button pressed %u times!\n", pressCount);
 }
 
 void onButtonHold()
 {
-  Serial.printf("Button hold!");
+  Serial.println("Button hold!");
+  transmitter.autoTune();
 }
 
 void setup()
 {
+  delay(3000);
+  Serial.begin(9600);
+
   transmitter.begin();
-  transmitter.setFrequency(10530);
+  Serial.println(transmitter.getFrequency());
 
   setup_i2s();
 
   a2dpSink.set_stream_reader(onStreamRead, false);
   a2dpSink.start("ESP32", true);
-
-  Serial.begin(9600);
 
   button.onPress(onButtonPress);
   button.onHold(onButtonHold);

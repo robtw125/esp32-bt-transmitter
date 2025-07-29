@@ -1,9 +1,12 @@
 #include <Transmitter.h>
+#include "nvs.h"
+#include "nvs_flash.h"
 
-Transmitter::Transmitter(uint8_t resetPin, uint8_t power)
+Transmitter::Transmitter(uint8_t resetPin, uint8_t power, uint16_t defaultFrequency)
     : _resetPin(resetPin),
       _si4713(resetPin),
-      _power(constrain(power, 88, 115))
+      _power(constrain(power, 88, 115)),
+      _defaultFrequency(defaultFrequency)
 {
 }
 
@@ -21,12 +24,17 @@ bool Transmitter::begin()
 
   _si4713.setTXpower(_power);
 
+  uint16_t savedFrequency = loadFrequency();
+  Serial.printf("Saved Freq: %u\n", savedFrequency);
+  setFrequency(savedFrequency);
+
   return true;
 }
 
 void Transmitter::autoTune()
 {
   uint16_t bestFrequency = findBestFrequency();
+  _si4713.setTXpower(_power);
   setFrequency(bestFrequency);
 }
 
@@ -39,6 +47,7 @@ void Transmitter::setFrequency(uint16_t frequency)
 {
   _si4713.tuneFM(frequency);
   _frequency = frequency;
+  saveFrequency();
 }
 
 // Although a similar function is allready implemented in the Adafruit library,
@@ -87,4 +96,39 @@ uint16_t Transmitter::findBestFrequency()
   }
 
   return bestFrequency;
+}
+
+void Transmitter::saveFrequency()
+{
+  uint16_t _savedFrequency = loadFrequency();
+
+  if (_savedFrequency == _frequency)
+    return;
+
+  if (!_preferences.begin(NAMESPACE, false))
+  {
+    Serial.println("NVS not available! Save");
+    return;
+  }
+
+  Serial.printf("Saved Frequency %u!\n", _frequency);
+
+  _preferences.putUShort(KEY, _frequency);
+  _preferences.end();
+}
+
+uint16_t Transmitter::loadFrequency()
+{
+  uint16_t savedFrequency;
+
+  if (!_preferences.begin(NAMESPACE, false))
+  {
+    Serial.println("NVS not available!");
+    return _defaultFrequency;
+  }
+
+  savedFrequency = _preferences.getUShort(KEY, _defaultFrequency);
+  _preferences.end();
+
+  return savedFrequency;
 }
