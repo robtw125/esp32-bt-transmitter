@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Transmitter.h>
 #include <BluetoothA2DPSink.h>
+#include <Button.h>
 
 #define SI4713_RESET_PIN 19
 #define SI4713_POWER 95
@@ -8,6 +9,7 @@
 #define I2S_NUM I2S_NUM_0
 
 Transmitter transmitter(SI4713_RESET_PIN, SI4713_POWER);
+Button button(14, 500, 200, 25);
 BluetoothA2DPSink a2dpSink;
 
 void setup_i2s()
@@ -45,6 +47,16 @@ void onStreamRead(const uint8_t *data, uint32_t length)
   i2s_write(I2S_NUM, data, length, &bytes_written, portMAX_DELAY);
 }
 
+void onButtonPress(uint8_t pressCount)
+{
+  Serial.printf("Pressed %u times!\n", pressCount);
+}
+
+void onButtonHold()
+{
+  Serial.printf("Button hold!");
+}
+
 void setup()
 {
   transmitter.begin();
@@ -54,9 +66,16 @@ void setup()
 
   a2dpSink.set_stream_reader(onStreamRead, false);
   a2dpSink.start("ESP32", true);
+
+  Serial.begin(9600);
+
+  button.onPress(onButtonPress);
+  button.onHold(onButtonHold);
 }
 
 void loop()
 {
-  delay(500);
+  button.update();
+
+  delay(10);
 }
